@@ -114,7 +114,7 @@ def mainloop(country, scale, max):
 
             startx = _Margin
             starty = _Vertical - _Margin
-            draw_text(_Margin, _Margin/2, country," : ",year, " population ",int((total_pop_m+total_pop_f)/10000)/100, "M % of max : ", int(100*(total_pop_m+total_pop_f)/max)/10)
+            draw_text(_Margin, _Margin/2, country," : ",year, " population ",int((total_pop_m+total_pop_f)/10000)/100, "M % of max : ", int(10*(total_pop_m+total_pop_f)/max)/10)
 
         if first_year:
             first_year = False
