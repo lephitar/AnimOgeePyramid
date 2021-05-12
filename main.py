@@ -110,7 +110,10 @@ def mainloop(country, scale, max):
                         draw_rect(startx, starty - scale * (pop_m[group]+pop_f[group]), startx + _Column_width, starty - scale * (pop_m[group] + pop_f[group] - delta_m - delta_f))
 
                 if initial_pop[group] > 0:
-                    draw_rect(startx, starty - scale * initial_pop[group]-1, startx + _Column_width, starty - scale * initial_pop[group])
+                    set_color(color_rgb(80, 80, 80, 100))
+                    move_to(startx, starty - scale * initial_pop[group]-1)
+                    line_to(startx + _Column_width, starty - scale * initial_pop[group])
+                    set_color(color_rgb(80, 80, 80, 255))
                 startx = startx + _Column_width
 
             startx = startx + _Column_width # Skip one column before death
