@@ -41,7 +41,7 @@ def set_bar_color(m, f, dark):
     cr, cg, cb = int(255 * red), int(255 * green), int(255 * blue)
     set_fill_color(color_rgb(cr, cg, cb))
 
-def mainloop(country, scale):
+def mainloop(country, scale, max):
     year = _Start_year
     set_color(color_rgb(80, 80, 80))
     last_pop_m = []
@@ -78,12 +78,15 @@ def mainloop(country, scale):
             clear_device()
             startx = _Margin
             starty = _Vertical - _Margin
-            draw_text(_Margin, _Margin/2, country," : ",year)
             death_m = 0
             death_f = 0
+            total_pop_m = 0
+            total_pop_f = 0
             for group in range(0,_Columns):
                 draw_text(startx, starty + _Margin / 2, str(group*5))
                 set_bar_color(pop_m[group],pop_f[group],0.7)
+                total_pop_f = total_pop_f + pop_f[group]
+                total_pop_m = total_pop_m + pop_m[group]
                 if first_year or group == 0:
                     # Clean case
                     draw_rect(startx,starty-scale*(pop_m[group]+pop_f[group]), startx+_Column_width, starty)
@@ -109,6 +112,10 @@ def mainloop(country, scale):
             set_bar_color(death_m, death_f, 0.4)
             draw_rect(startx, starty + scale * (death_m + death_f), startx + _Column_width, starty)
 
+            startx = _Margin
+            starty = _Vertical - _Margin
+            draw_text(_Margin, _Margin/2, country," : ",year, " population ",int((total_pop_m+total_pop_f)/10000)/100, "M % of max : ", int(100*(total_pop_m+total_pop_f)/max)/10)
+
         if first_year:
             first_year = False
         for i in range(0, _Columns):
@@ -127,6 +134,7 @@ def mainloop(country, scale):
 def find_max(country):
     year = _Start_year
     max = 0
+    maxtotal = 0
 
     while year <= _End_year:
         # read data
@@ -134,14 +142,18 @@ def find_max(country):
         with open(file_name, newline='') as csvfile:
             datareader = csv.reader(csvfile, delimiter=',', quotechar='|')
             next(datareader)
+            total = 0
             for row in datareader:
                 agegroup = int(row[1])+int(row[2])
                 if agegroup > max:
                     max = agegroup
+                total = total + agegroup
+            if total > maxtotal:
+                maxtotal = total
 
         # Move onto next year
         year = year + 5
-    return max
+    return (max, maxtotal)
 
 def main():
     pth = "data"
@@ -155,7 +167,8 @@ def main():
         reply = get_choice("What country", choices=choices)
         if reply == None:
             break
-        mainloop(reply, (_Vertical - 2 * _Margin) / find_max(reply))
+        (maxbar, maxtotal) = find_max(reply)
+        mainloop(reply, (_Vertical - 2 * _Margin) / maxbar, maxtotal)
     close_graph()
 
 
