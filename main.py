@@ -53,13 +53,16 @@ def mainloop(country, scale):
         last_pop_f.append(0)
     while is_run():
         if has_kb_hit():
-            while has_kb_hit(): # Purge keybd
-                get_key()
-            break
+            mykey = get_char()
+            while has_kb_hit():
+                get_char()
+            if mykey == " ":
+                pause()
+
         if has_mouse_msg():
-            while has_mouse_msg():  # Purge mouse
+            while has_mouse_msg():
                 get_mouse_msg()
-            break
+            return
         pop_m = []
         pop_f = []
         # read data
@@ -143,7 +146,8 @@ def find_max(country):
 def main():
     pth = "data"
     choices = os.listdir(pth)
-    choices.remove(".DS_Store")
+    if ".DS_Store" in choices:
+        choices.remove(".DS_Store")
 
     init_graph(_Horizontal, _Vertical)
     set_render_mode(RenderMode.RENDER_MANUAL)
