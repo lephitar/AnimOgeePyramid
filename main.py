@@ -1,8 +1,8 @@
 from easygraphics import *
+from easygraphics.dialog import *
 import csv
 import colorsys
 
-_Country = "usa"
 # get data curl "https://www.populationpyramid.net/api/pp/392/[1950-2100]/?csv=true" -o pop#1.csv
 _Start_year = 1950
 _End_year = 2100
@@ -12,13 +12,13 @@ _Horizontal = 1200
 _Margin = 50
 _Columns = 21
 _Column_width = (_Horizontal - (2* _Margin)) / (_Columns + 2)
-_Speed = 5
+_Speed = 5  # frame per sec
 
 _pink_hue = 320/360
 _pink_saturation = 35/100
 _blue_hue= 208/360
 _blue_saturation = 57/100
-_sex_scale = 0.1  # More than 20% delta means max saturation
+_sex_scale = 0.1  # More than 10% delta means max saturation
 
 
 def set_bar_color(m, f, dark):
@@ -39,8 +39,7 @@ def set_bar_color(m, f, dark):
     cr, cg, cb = int(255 * red), int(255 * green), int(255 * blue)
     set_fill_color(color_rgb(cr, cg, cb))
 
-def mainloop(scale):
-
+def mainloop(country, scale):
     year = _Start_year
     set_color(color_rgb(80, 80, 80))
     last_pop_m = []
@@ -51,10 +50,18 @@ def mainloop(scale):
         last_pop_m.append(0)
         last_pop_f.append(0)
     while is_run():
+        if has_kb_hit():
+            while has_kb_hit(): # Purge keybd
+                get_key()
+            break
+        if has_mouse_msg():
+            while has_mouse_msg():  # Purge mouse
+                get_mouse_msg()
+            break
         pop_m = []
         pop_f = []
         # read data
-        file_name = "data/"+_Country+"/pop"+str(year)+".csv"
+        file_name = "data/"+country+"/pop"+str(year)+".csv"
         with open(file_name, newline='') as csvfile:
             datareader = csv.reader(csvfile, delimiter=',', quotechar='|')
             next(datareader)
@@ -66,7 +73,7 @@ def mainloop(scale):
             clear_device()
             startx = _Margin
             starty = _Vertical - _Margin
-            draw_text(_Margin, _Margin/2, _Country," : ",year)
+            draw_text(_Margin, _Margin/2, country," : ",year)
             death_m = 0
             death_f = 0
             for group in range(0,_Columns):
@@ -92,7 +99,7 @@ def mainloop(scale):
                         draw_rect(startx, starty - scale * (pop_m[group]+pop_f[group]), startx + _Column_width, starty - scale * (pop_m[group] + pop_f[group] - delta_m - delta_f))
 
                 startx = startx + _Column_width
-            startx = startx + _Column_width
+            startx = startx + _Column_width # Skip one column before death
             draw_text(startx, starty + _Margin / 2, "death")
             set_bar_color(death_m, death_f, 0.4)
             draw_rect(startx, starty + scale * (death_m + death_f), startx + _Column_width, starty)
@@ -109,16 +116,16 @@ def mainloop(scale):
             year = _Start_year
             first_year = True
             clear_device()
-            delay(_Speed*100)
+            delay(500) # 1/2 second blank
 
 
-def find_max():
+def find_max(country):
     year = _Start_year
     max = 0
 
     while year <= _End_year:
         # read data
-        file_name = "data/"+_Country+"/pop"+str(year)+".csv"
+        file_name = "data/"+country+"/pop"+str(year)+".csv"
         with open(file_name, newline='') as csvfile:
             datareader = csv.reader(csvfile, delimiter=',', quotechar='|')
             next(datareader)
@@ -134,7 +141,12 @@ def find_max():
 def main():
     init_graph(_Horizontal, _Vertical)
     set_render_mode(RenderMode.RENDER_MANUAL)
-    mainloop((_Vertical - 2 * _Margin) / find_max())
+    while True:
+        choices = ["usa", "japan", "france"]
+        reply = get_choice("What country", choices=choices)
+        if reply == None:
+            break
+        mainloop(reply, (_Vertical - 2 * _Margin) / find_max(reply))
     close_graph()
 
 easy_run(main)
