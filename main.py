@@ -2,7 +2,7 @@ from easygraphics import *
 import csv
 import colorsys
 
-_Country = "france"
+_Country = "usa"
 # get data curl "https://www.populationpyramid.net/api/pp/392/[1950-2100]/?csv=true" -o pop#1.csv
 _Start_year = 1950
 _End_year = 2100
@@ -126,7 +126,6 @@ def find_max():
                 agegroup = int(row[1])+int(row[2])
                 if agegroup > max:
                     max = agegroup
-                    print(f"year {year} for {row[0]} = {max}")
 
         # Move onto next year
         year = year + 5
