@@ -2,8 +2,10 @@ from easygraphics import *
 from easygraphics.dialog import *
 import csv
 import colorsys
+import os
 
-# get data curl "https://www.populationpyramid.net/api/pp/392/[1950-2100]/?csv=true" -o pop#1.csv
+
+# get data curl "https://www.populationpyramid.net/api/pp/392/[1950-2100:5]/?csv=true" -o pop#1.csv
 _Start_year = 1950
 _End_year = 2100
 
@@ -139,14 +141,18 @@ def find_max(country):
     return max
 
 def main():
+    pth = "data"
+    choices = os.listdir(pth)
+    choices.remove(".DS_Store")
+
     init_graph(_Horizontal, _Vertical)
     set_render_mode(RenderMode.RENDER_MANUAL)
     while True:
-        choices = ["usa", "japan", "france"]
         reply = get_choice("What country", choices=choices)
         if reply == None:
             break
         mainloop(reply, (_Vertical - 2 * _Margin) / find_max(reply))
     close_graph()
+
 
 easy_run(main)
