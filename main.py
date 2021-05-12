@@ -48,10 +48,12 @@ def mainloop(country, scale, max):
     last_pop_m = []
     last_pop_f = []
     first_year = True
+    initial_pop = []
     # Initialize last population
     for i in range (0,_Columns):
         last_pop_m.append(0)
         last_pop_f.append(0)
+        initial_pop.append(0)
     while is_run():
         if has_kb_hit():
             mykey = get_char()
@@ -82,6 +84,8 @@ def mainloop(country, scale, max):
             total_pop_m = 0
             total_pop_f = 0
             for group in range(0,_Columns):
+                if group == 0:
+                    initial_pop[0] = pop_m[0] + pop_f[0]
                 draw_text(startx, starty + _Margin / 2, str(group*5))
                 set_bar_color(pop_m[group],pop_f[group],0.7)
                 total_pop_f = total_pop_f + pop_f[group]
@@ -105,7 +109,10 @@ def mainloop(country, scale, max):
                         set_bar_color(-delta_m, -delta_f, 0.8)
                         draw_rect(startx, starty - scale * (pop_m[group]+pop_f[group]), startx + _Column_width, starty - scale * (pop_m[group] + pop_f[group] - delta_m - delta_f))
 
+                if initial_pop[group] > 0:
+                    draw_rect(startx, starty - scale * initial_pop[group]-1, startx + _Column_width, starty - scale * initial_pop[group])
                 startx = startx + _Column_width
+
             startx = startx + _Column_width # Skip one column before death
             draw_text(startx, starty + _Margin / 2, "death")
             set_bar_color(death_m, death_f, 0.4)
@@ -120,6 +127,8 @@ def mainloop(country, scale, max):
         for i in range(0, _Columns):
             last_pop_m[i] = pop_m[i]
             last_pop_f[i] = pop_f[i]
+        for i in range(_Columns-1, 0, -1):
+            initial_pop[i] = initial_pop[i-1]
 
         # Move onto next year
         year = year + 5
@@ -128,7 +137,14 @@ def mainloop(country, scale, max):
             first_year = True
             clear_device()
             delay(500) # 1/2 second blank
-
+            last_pop_m = []
+            last_pop_f = []
+            initial_pop = []
+            # Initialize last population
+            for i in range (0,_Columns):
+                last_pop_m.append(0)
+                last_pop_f.append(0)
+                initial_pop.append(0)
 
 def find_max(country):
     year = _Start_year
