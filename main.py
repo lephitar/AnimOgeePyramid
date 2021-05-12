@@ -44,7 +44,7 @@ def set_bar_color(m, f, dark):
 
 def mainloop(country, scale, max):
     year = _Start_year
-    set_color(color_rgb(80, 80, 80))
+    set_color(color_rgb(80, 80, 80, 255))
     last_pop_m = []
     last_pop_f = []
     first_year = True
