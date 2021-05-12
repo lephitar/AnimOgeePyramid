@@ -23,6 +23,7 @@ _blue_saturation = 57/100
 _sex_scale = 0.1  # More than 10% delta means max saturation
 
 
+
 def set_bar_color(m, f, dark):
     if m+f == 0:
         set_fill_color(color_rgb(255, 0, 0))
@@ -54,8 +55,6 @@ def mainloop(country, scale, max):
     while is_run():
         if has_kb_hit():
             mykey = get_char()
-            while has_kb_hit():
-                get_char()
             if mykey == " ":
                 pause()
 
