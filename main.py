@@ -115,7 +115,8 @@ def mainloop(country, scale, max):
                     line_to(startx + _Column_width, starty - scale * initial_pop[group])
                     set_color(color_rgb(80, 80, 80, 255))
 
-                draw_text(startx, _Vertical - 3 * _Margin / 2, (year - 5 * group))
+                if (year - group * 5) % 20 == 0:
+                    draw_text(startx, _Vertical - 3 * _Margin / 2, (year - 5 * group))
                 startx = startx + _Column_width
 
             startx = startx + _Column_width # Skip one column before death
