@@ -3,6 +3,11 @@ from easygraphics.dialog import *
 import csv
 import colorsys
 import os
+import requests
+import country_codes
+
+# Country codes are ISO 3166-1
+# All referred to in slim-country.csv
 
 
 # get data curl "https://www.populationpyramid.net/api/pp/392/[1950-2100:5]/?csv=true" -o pop#1.csv
@@ -177,17 +182,68 @@ def find_max(country):
     return (max, maxtotal)
 
 def main():
+    # file_name = "slim-country.csv"
+    # with open(file_name, newline='') as csvfile:
+    #     datareader = csv.reader(csvfile, delimiter=',', quotechar='|')
+    #     next(datareader)    # skip first line
+    #     for row in datareader:
+    #         countries[row[0]]=row[2]
+    #
+    # for key in countries:
+    #     # https://www.populationpyramid.net/api/pp/392/[1950-2100:5]/?csv=true
+    #     r = requests.get('https://www.populationpyramid.net/api/pp/' + str(countries[key]) + '/1950/?csv=true')
+    #     if r.status_code == 200:
+    #         print(f'"{key}":"{countries[key]}",')
+
     pth = "data"
-    choices = os.listdir(pth)
-    if ".DS_Store" in choices:
-        choices.remove(".DS_Store")
+    if os.path.isdir(pth):
+        cached = os.listdir(pth)
+    else:
+        try:
+            os.mkdir(pth)
+            cached = []
+        except OSError:
+            print("Creation of the directory %s failed" % pth)
+            exit(0)
+
+    # if ".DS_Store" in cached:
+    #     cached.remove(".DS_Store")
 
     init_graph(_Horizontal, _Vertical)
     set_render_mode(RenderMode.RENDER_MANUAL)
     while True:
-        reply = get_choice("What country", choices=choices)
+        reply = get_choice("What country", choices=country_codes.countries.keys())
         if reply == None:
             break
+        if reply not in cached:
+            pth = "data/"+reply
+            try:
+                os.mkdir(pth)
+            except OSError:
+                print("Creation of the directory %s failed" % pth)
+                exit(0)
+            set_color(color_rgb(80, 80, 80, 255))
+            clear_device()
+            for year in range(1950,2101,5):
+                while True:
+                    if delay_jfps(1000):
+                        clear_device()
+                        startx = _Margin
+                        starty = _Vertical - _Margin
+
+                        draw_text(_Margin, _Margin / 2, reply, " loading cache : ", str(year))
+                        set_bar_color(1,1,0.4)
+                        draw_rect(_Margin, _Margin, _Margin + 4* (2100 - 1950), _Margin + 20)
+                        set_bar_color(2+(2100-year)/150,2+(year-1950)/150,0.8)
+                        draw_rect(_Margin, _Margin, _Margin + 4* (year - 1950), _Margin + 20)
+                        url = 'https://www.populationpyramid.net/api/pp/' + str(country_codes.countries[reply]) + '/' + str(year)+ '/?csv=true'  # [1950-2100:5]
+                        r = requests.get(url)
+                        file = open("data/" + reply + "/pop" + str(year) + ".csv", "w")
+                        file.write(r.text)
+                        file.close()
+                        cached.append(reply)
+                        break
+
         (maxbar, maxtotal) = find_max(reply)
         mainloop(reply, (_Vertical - 2 * _Margin) / maxbar, maxtotal)
     close_graph()
