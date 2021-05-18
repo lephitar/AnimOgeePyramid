@@ -19,7 +19,6 @@ _Horizontal = 1200
 _Margin = 50
 _Columns = 21
 _Column_width = (_Horizontal - (2* _Margin)) / (_Columns + 2)
-_Speed = 5  # frame per sec
 
 _pink_hue = 320/360
 _pink_saturation = 35/100
@@ -48,6 +47,8 @@ def set_bar_color(m, f, dark):
     set_fill_color(color_rgb(cr, cg, cb))
 
 def mainloop(country, scale, max):
+    _Speed = 5  # frame per sec
+
     year = _Start_year
     set_color(color_rgb(80, 80, 80, 255))
     last_pop_m = []
@@ -64,6 +65,12 @@ def mainloop(country, scale, max):
             mykey = get_char()
             if mykey == " ":
                 pause()
+            if mykey == "<":
+                if _Speed > 2:
+                    _Speed = _Speed - 1
+            if mykey == ">":
+                    _Speed = _Speed + 1
+
 
         if has_mouse_msg():
             while has_mouse_msg():
