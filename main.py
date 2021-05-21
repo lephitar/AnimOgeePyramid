@@ -56,7 +56,7 @@ def set_bar_color(m, f, dark, mode, color):
         else:
             set_fill_color(color)
 
-def mainloop(country, scale, max):
+def mainloop(country, scale, max, pop_data):
     Speed = 5  # frame per sec
 
     year = _Start_year
@@ -180,30 +180,42 @@ def mainloop(country, scale, max):
 
     print ("EXIT")
 
+def read_data(country, year):
+    pop = []
+    # read data
+    file_name = "data/" + country + "/pop" + str(year) + ".csv"
+    with open(file_name, newline='') as csvfile:
+        datareader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        next(datareader)
+        for row in datareader:
+            pop.append([int(row[1]),int(row[2])])
+    return pop
 
-def find_max(country):
-    year = _Start_year
-    max = 0
-    maxtotal = 0
-
-    while year <= _End_year:
-        # read data
-        file_name = "data/"+country+"/pop"+str(year)+".csv"
-        with open(file_name, newline='') as csvfile:
-            datareader = csv.reader(csvfile, delimiter=',', quotechar='|')
-            next(datareader)
-            total = 0
-            for row in datareader:
-                agegroup = int(row[1])+int(row[2])
-                if agegroup > max:
-                    max = agegroup
-                total = total + agegroup
-            if total > maxtotal:
-                maxtotal = total
-
-        # Move onto next year
-        year = year + 5
-    return (max, maxtotal)
+def cache_country(country):
+    pth = "data/" + country
+    try:
+        os.mkdir(pth)
+    except OSError:
+        print("Creation of the directory %s failed" % pth)
+        exit(0)
+    set_color(color_rgb(80, 80, 80, 255))
+    clear_device()
+    for year in range(1950, 2101, 5):
+        while True:
+            if delay_jfps(1000):
+                clear_device()
+                draw_text(_Margin, _Margin / 2, reply, " loading cache : ", str(year))
+                set_bar_color(1, 1, 0.4, "color", "#A0A0A0")
+                draw_rect(_Margin, _Margin, _Margin + 4 * (2100 - 1950), _Margin + 20)
+                set_bar_color(2 + (2100 - year) / 150, 2 + (year - 1950) / 150, 0.8, "color", "#3399ff")
+                draw_rect(_Margin, _Margin, _Margin + 4 * (year - 1950), _Margin + 20)
+                url = 'https://www.populationpyramid.net/api/pp/' + str(country_codes.countries[country]) + '/' + str(
+                    year) + '/?csv=true'  # [1950-2100:5]
+                r = requests.get(url)
+                file = open("data/" + country + "/pop" + str(year) + ".csv", "w")
+                file.write(r.text)
+                file.close()
+                break   # get out of while True
 
 def main():
     # file_name = "slim-country.csv"
@@ -230,45 +242,54 @@ def main():
             print("Creation of the directory %s failed" % pth)
             exit(0)
 
-    # if ".DS_Store" in cached:
-    #     cached.remove(".DS_Store")
-
     init_graph(_Horizontal, _Vertical)
     set_render_mode(RenderMode.RENDER_MANUAL)
     set_font(QFont("Courier"))
     set_font_size(14)
-    print(f"{get_font().family()} : {get_font_size()}")
     while True:
-        reply = get_choice("What country", choices=country_codes.countries.keys())
-        if reply == None:
+        # Select country
+        country = get_choice("What country", choices=country_codes.countries.keys())
+        if country == None:
             break
-        if reply not in cached:
-            pth = "data/"+reply
-            try:
-                os.mkdir(pth)
-            except OSError:
-                print("Creation of the directory %s failed" % pth)
-                exit(0)
-            set_color(color_rgb(80, 80, 80, 255))
-            clear_device()
-            for year in range(1950,2101,5):
-                while True:
-                    if delay_jfps(1000):
-                        clear_device()
-                        draw_text(_Margin, _Margin / 2, reply, " loading cache : ", str(year))
-                        set_bar_color(1,1,0.4, "color", "#A0A0A0")
-                        draw_rect(_Margin, _Margin, _Margin + 4* (2100 - 1950), _Margin + 20)
-                        set_bar_color(2+(2100-year)/150,2+(year-1950)/150,0.8,"color", "#3399ff")
-                        draw_rect(_Margin, _Margin, _Margin + 4* (year - 1950), _Margin + 20)
-                        url = 'https://www.populationpyramid.net/api/pp/' + str(country_codes.countries[reply]) + '/' + str(year)+ '/?csv=true'  # [1950-2100:5]
-                        r = requests.get(url)
-                        file = open("data/" + reply + "/pop" + str(year) + ".csv", "w")
-                        file.write(r.text)
-                        file.close()
-                        cached.append(reply)
-                        break
+        # Cache country data if not there
+        if country not in cached:
+            if cache_country(country):
+                cached.append(country)
 
-        (maxbar, maxtotal) = find_max(reply)
-        mainloop(reply, (_Vertical / 2 - 2 * _Margin) / maxbar, maxtotal)
+        # Precalculate data
+        pop_data = []
+        max_bar = 0
+        max_population = 0
+        last_death = []
+        last_immig = []
+        for idx_yr, year in enumerate(range(_Start_year, _End_year+1, 5)):
+            live_bars = read_data(country, year)
+            population = 0
+            death_bars = []
+            immig_bars = []
+            for idx_bar, bar in enumerate(live_bars):
+                population_bar = bar[0]+bar[1]  # add women and men
+                if population_bar > max_bar:
+                    max_bar = population_bar
+                population = population + population_bar
+                if idx_bar > 0 and idx_yr > 0:       # Not in first year or column
+                    pop_last = pop_data[idx_yr - 1]["live"]
+                    new_death = (pop_last[idx_bar - 1][0] - bar[0] if bar[0] < pop_last[idx_bar - 1][0] else 0) +\
+                                (pop_last[idx_bar - 1][1] - bar[1] if bar[1] < pop_last[idx_bar - 1][1] else 0)
+                    new_immig = (bar[0] - pop_last[idx_bar - 1][0] if bar[0] > pop_last[idx_bar - 1][0] else 0) +\
+                                (bar[1] - pop_last[idx_bar - 1][1] if bar[1] > pop_last[idx_bar - 1][1] else 0)
+                else:
+                    new_death = 0
+                    new_immig = 0
+                death_bars.append(new_death)
+                immig_bars.append(new_immig)
+            if population > max_population:
+                max_population = population
+
+
+            pop_data.append({"year":year, "population":population, "live":live_bars, "death":death_bars, "immigration":immig_bars})
+
+        print(f"Pop {max_population} and bar {max_bar}")
+        mainloop(country, (_Vertical / 2 - 2 * _Margin) / max_bar, max_population, pop_data)
     close_graph()
 easy_run(main)
