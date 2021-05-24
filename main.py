@@ -260,10 +260,27 @@ def main():
         pop_data = []
         max_bar = 0
         max_population = 0
-        last_death = []
-        last_immig = []
+        previous_death = []
+        death_bars = []
+        previous_immig = []
+        immig_bars = []
+
         for idx_yr, year in enumerate(range(_Start_year, _End_year+1, 5)):
+            # Read live data
             live_bars = read_data(country, year)
+
+            # Handle previous deaths
+            if idx_yr > 0:
+                for idx_bar in range(0,len(death_bars)):
+                    previous_death[idx_bar] += death_bars[idx_bar]
+                    previous_immig[idx_bar] += immig_bars[idx_bar]
+                previous_death.insert(0, 0)
+                previous_immig.insert(0,0)
+            else:
+                for bar in range(0, len(live_bars)):
+                    previous_death.append(0)
+                    previous_immig.append(0)
+
             population = 0
             death_bars = []
             immig_bars = []
@@ -287,7 +304,7 @@ def main():
                 max_population = population
 
 
-            pop_data.append({"year":year, "population":population, "live":live_bars, "death":death_bars, "immigration":immig_bars})
+            pop_data.append({"year":year, "population":population, "live":live_bars, "death":death_bars, "immigration":immig_bars, "previous_death":previous_death, "previous_immig":previous_immig})
 
         print(f"Pop {max_population} and bar {max_bar}")
         mainloop(country, (_Vertical / 2 - 2 * _Margin) / max_bar, max_population, pop_data)
