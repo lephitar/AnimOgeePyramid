@@ -133,9 +133,6 @@ def mainloop(country, max_bar, max_population, pop_data):
                 draw_rect(startx, starty, startx + width, starty + scale * last_death)
                 draw_rect(startx, starty + scale * last_death, startx + width, starty + scale * (last_death + death))
 
-                # Label groups
-                draw_text(_Margin + 3 + group * _Column_width, starty + _Margin / 2, str(group * 5))
-
                 # Every 4 columns, print birth year
                 if (year - group * 5) % 20 == 0:
                     draw_text(startx + 3, _Vertical / 2 - _Margin / 2, (year - 5 * group))
@@ -144,8 +141,6 @@ def mainloop(country, max_bar, max_population, pop_data):
             # Last columns are only previous deaths
             group = _ActiveColumns
             while group < _Columns:
-                # Label groups
-                draw_text(_Margin + 3 + group * _Column_width, starty + _Margin / 2, str(group * 5))
                 if group == _Columns - 1:
                     width = _Column_width * (Speed - sub) / Speed
                 else:
@@ -158,16 +153,32 @@ def mainloop(country, max_bar, max_population, pop_data):
                 startx = startx + _Column_width
                 group += 1
 
+            pop_m = pop_data[idx_yr]["live"][0][0]
+            pop_f = pop_data[idx_yr]["live"][0][1]
+
+            font = QFont("Courier")
+            font.setBold(total_death > pop_m + pop_f + total_immigration)
+            set_font(font)
+            set_font_size(14)
+
             startx = _Horizontal - _Margin - _Column_width / 2 # Skip one column before death
-            draw_text(startx, _Vertical - _Margin / 2, "death")
+            draw_text(startx - 10, _Vertical - _Margin / 2, "death")
             set_bar_color(1, 1, 0.4, ColorMode, _purple_color)
             draw_rect(startx, starty + scale * total_death, startx + _Column_width/2, starty)
 
-            draw_text(startx, _Margin / 2, "birth")
+            font = QFont("Courier")
+            font.setBold(total_death < pop_m + pop_f + total_immigration)
+            set_font(font)
+            set_font_size(14)
+
+            draw_text(startx - 10, _Margin / 2, "birth")
             h = get_font_size()
-            draw_text(startx, _Margin / 2 + h, "immig")
-            pop_m = pop_data[idx_yr]["live"][0][0]
-            pop_f = pop_data[idx_yr]["live"][0][1]
+            draw_text(startx - 10, _Margin / 2 + h, "immig")
+
+            font = QFont("Courier")
+            font.setBold(False)
+            set_font(font)
+            set_font_size(14)
 
             set_bar_color(1, 1, 0.7, ColorMode, _green_color)
             draw_rect(startx, starty - scale * (pop_m + pop_f), startx + _Column_width/2, starty)
@@ -178,6 +189,13 @@ def mainloop(country, max_bar, max_population, pop_data):
             startx = _Margin
             starty = _Vertical / 2
             draw_text(_Margin, _Margin/2, country," : ",year, " population ",int(pop_data[idx_yr]["population"]/10000)/100, "M % of max : ", int(1000*pop_data[idx_yr]["population"]/max_population)/10)
+
+            group = 0
+            while group < _Columns:
+                # Label groups
+                draw_text(_Margin + 3 + group * _Column_width, starty + _Margin / 2, str(group * 5))
+                group += 1
+
             if Recording:
                 add_record()
 
@@ -286,7 +304,9 @@ def main():
 
     init_graph(_Horizontal, _Vertical)
     set_render_mode(RenderMode.RENDER_MANUAL)
-    set_font(QFont("Courier"))
+    font = QFont("Courier")
+    font.setBold(True)
+    set_font(font)
     set_font_size(14)
     while True:
         # Select country
