@@ -18,7 +18,7 @@ _Vertical = 800
 _Horizontal = 1400
 _Margin = 50
 _ActiveColumns = 21
-_Columns = 24
+_Columns = 28
 _Column_width = (_Horizontal - (2* _Margin)) / (_Columns + 2)
 
 _pink_hue = 320
@@ -117,10 +117,7 @@ def mainloop(country, max_bar, max_population, pop_data):
 
                 # Draw Death
                 set_bar_color(1, 1, 0.4, ColorMode, _purple_color)
-                if group == 0:
-                    last_death = 0
-                else:
-                    last_death = pop_data[idx_yr]["previous_death"][group-1]
+                last_death = pop_data[idx_yr]["previous_death"][group]
                 draw_rect(startx, starty, startx + width, starty + scale * last_death)
                 draw_rect(startx, starty + scale * last_death, startx + width, starty + scale * (last_death + death))
 
@@ -249,7 +246,7 @@ def main():
 
         live_bars = read_data(country, _Start_year)
         for idx_yr, year in enumerate(range(_Start_year, _End_year, 5)):
-            # Read live data a year ahead
+            # Read live data a column ahead
             next_bars = read_data(country, year+5)
 
             # Handle previous deaths
@@ -257,8 +254,8 @@ def main():
                 for idx_bar in range(0,len(live_bars)):
                     previous_death[idx_bar] += death_bars[idx_bar]
                     previous_immig[idx_bar] += immig_bars[idx_bar]
-                previous_death.insert(0, death_bars[0])
-                previous_immig.insert(0, immig_bars[0])
+                previous_death.insert(0, 0)
+                previous_immig.insert(0, 0)
             else:
                 # Initialize
                 for bar in range(0, len(live_bars)):
@@ -275,18 +272,24 @@ def main():
                 if population_bar > max_bar:
                     max_bar = population_bar
                 population = population + population_bar
-                if idx_bar < len(live_bars)-1:       # Not in first year or column
+                if idx_bar < len(live_bars)-1:       # Not last column
                     new_death = (bar[0] - next_bars[idx_bar + 1][0] if bar[0] > next_bars[idx_bar + 1][0] else 0) +\
                                 (bar[1] - next_bars[idx_bar + 1][1] if bar[1] > next_bars[idx_bar + 1][1] else 0)
                     new_immig = (next_bars[idx_bar + 1][0] - bar[0] if bar[0] < next_bars[idx_bar + 1][0] else 0) +\
                                 (next_bars[idx_bar + 1][1] - bar[1] if bar[1] < next_bars[idx_bar + 1][1] else 0)
                 else:
-                    new_death = bar[0] + bar[1]
+                    new_death = bar[0] + bar[1]     # All die
                     new_immig = 0
                 death_bars.append(new_death)
                 immig_bars.append(new_immig)
                 pre_deaths.append(previous_death[idx_bar])
                 pre_immig.append(previous_immig[idx_bar])
+
+            idx_bar = len(live_bars)
+            while idx_bar < len(previous_death):
+                pre_deaths.append(previous_death[idx_bar])
+                idx_bar += 1
+
             if population > max_population:
                 max_population = population
 
