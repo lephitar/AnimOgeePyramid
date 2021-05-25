@@ -107,6 +107,7 @@ def mainloop(country, max_bar, max_population, pop_data):
             starty = _Vertical / 2
             idx_yr = int((year - _Start_year) / 5)
             total_death = 0
+            total_immigration = 0
 
             for group in range(0,_ActiveColumns):
                 pop_m = pop_data[idx_yr]["live"][group][0]
@@ -124,8 +125,15 @@ def mainloop(country, max_bar, max_population, pop_data):
                 death = int(pop_data[idx_yr]["death"][group] * sub / Speed)
                 total_death += int(pop_data[idx_yr]["death"][group])
 
+                immigration = int(pop_data[idx_yr]["immigration"][group] * sub / Speed)
+                total_immigration += int(pop_data[idx_yr]["immigration"][group])
+
                 # Draw live
                 draw_rect(startx, starty - scale * (pop_m + pop_f - death), startx + width, starty)
+
+                # Draw immigration
+                set_bar_color(1, 1, 0.8, ColorMode, _blue_color)
+                draw_rect(startx, starty - scale * (pop_m + pop_f - death), startx + width, starty - scale * (pop_m + pop_f - death + immigration))
 
                 # Draw Death
                 set_bar_color(1, 1, 0.4, ColorMode, _purple_color)
@@ -154,9 +162,13 @@ def mainloop(country, max_bar, max_population, pop_data):
                 group += 1
 
             startx = _Horizontal - _Margin - _Column_width # Skip one column before death
-            draw_text(startx, starty - _Margin / 2, "death")
+            draw_text(startx, _Vertical - _Margin / 2, "death")
             set_bar_color(1, 1, 0.4, ColorMode, _purple_color)
             draw_rect(startx, starty + scale * total_death, startx + _Column_width, starty)
+
+            draw_text(startx, _Margin / 2, "immig")
+            set_bar_color(1, 1, 0.8, ColorMode, _blue_color)
+            draw_rect(startx, starty - scale * total_immigration, startx + _Column_width, starty)
 
             startx = _Margin
             starty = _Vertical / 2
@@ -175,7 +187,15 @@ def mainloop(country, max_bar, max_population, pop_data):
                     delay(500)  # 1/2 second blank
                     if Recording:
                         Recording = False
-                        save_recording(country + ".png")
+                        pth = "anim"
+                        if not os.path.isdir(pth):
+                            try:
+                                os.mkdir(pth)
+                            except OSError:
+                                print("Creation of the directory %s failed" % pth)
+                                exit(0)
+
+                        save_recording(pth+"/"+country + ".png")
                         end_recording()
                     if RecordMode:
                         Recording = True
@@ -207,7 +227,7 @@ def cache_country(country):
         while True:
             if delay_jfps(1000):
                 clear_device()
-                draw_text(_Margin, _Margin / 2, reply, " loading cache : ", str(year))
+                draw_text(_Margin, _Margin / 2, country, " loading cache : ", str(year))
                 set_bar_color(1, 1, 0.4, "color", "#A0A0A0")
                 draw_rect(_Margin, _Margin, _Margin + 4 * (2100 - 1950), _Margin + 20)
                 set_bar_color(2 + (2100 - year) / 150, 2 + (year - 1950) / 150, 0.8, "color", "#3399ff")
