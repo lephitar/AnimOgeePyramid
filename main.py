@@ -66,6 +66,9 @@ def mainloop(country, max_bar, max_population, pop_data):
     scale = (_Vertical - 2 * _Margin) / 2 / max_bar
     sub = 0
 
+    RecordMode = False
+    Recording = False
+    blink = 0
     while is_run():
         if has_kb_hit():
             mykey = get_char()
@@ -80,6 +83,9 @@ def mainloop(country, max_bar, max_population, pop_data):
                 ColorMode = "sex"
             if mykey == "c":
                 ColorMode = "color"
+            if mykey == "r":
+                RecordMode = True
+
 
         if has_mouse_msg():
             while has_mouse_msg():
@@ -88,6 +94,15 @@ def mainloop(country, max_bar, max_population, pop_data):
 
         if delay_jfps(_FPS):
             clear_device()
+            if Recording and blink < _FPS / 2:
+                set_fill_color(color_rgb(255, 0, 0))
+                set_color(color_rgb(255, 0, 0))
+                draw_circle(_Horizontal - _Margin / 2, _Margin / 2, 5)
+            set_color(color_rgb(80, 80, 80, 255))
+            blink = blink + 1
+            if blink >= _FPS:
+                blink = 0
+
             startx = _Margin
             starty = _Vertical / 2
             idx_yr = int((year - _Start_year) / 5)
@@ -97,9 +112,6 @@ def mainloop(country, max_bar, max_population, pop_data):
                 pop_m = pop_data[idx_yr]["live"][group][0]
                 pop_f = pop_data[idx_yr]["live"][group][1]
                 set_bar_color(pop_m, pop_f,0.7, ColorMode, _green_color)
-
-                # Label groups
-                draw_text(_Margin + 3 + group * _Column_width, starty + _Margin / 2, str(group * 5))
 
                 # First column fill in from left to righ
                 if group == 0:
@@ -121,6 +133,9 @@ def mainloop(country, max_bar, max_population, pop_data):
                 draw_rect(startx, starty, startx + width, starty + scale * last_death)
                 draw_rect(startx, starty + scale * last_death, startx + width, starty + scale * (last_death + death))
 
+                # Label groups
+                draw_text(_Margin + 3 + group * _Column_width, starty + _Margin / 2, str(group * 5))
+
                 # Every 4 columns, print birth year
                 if (year - group * 5) % 20 == 0:
                     draw_text(startx + 3, _Vertical / 2 - _Margin / 2, (year - 5 * group))
@@ -133,8 +148,10 @@ def mainloop(country, max_bar, max_population, pop_data):
                 if group < len(pop_data[idx_yr]["previous_death"]):
                     last_death = pop_data[idx_yr]["previous_death"][group]
                     draw_rect(startx, starty, startx + _Column_width, starty + scale * last_death)
+                if (year - group * 5) % 20 == 0:
+                    draw_text(startx + 3, _Vertical / 2 - _Margin / 2, (year - 5 * group))
                 startx = startx + _Column_width
-                group = group + 1
+                group += 1
 
             startx = _Horizontal - _Margin - _Column_width # Skip one column before death
             draw_text(startx, starty - _Margin / 2, "death")
@@ -144,6 +161,8 @@ def mainloop(country, max_bar, max_population, pop_data):
             startx = _Margin
             starty = _Vertical / 2
             draw_text(_Margin, _Margin/2, country," : ",year, " population ",int(pop_data[idx_yr]["population"]/10000)/100, "M % of max : ", int(1000*pop_data[idx_yr]["population"]/max_population)/10)
+            if Recording:
+                add_record()
 
             # Move onto next year
             sub += 1
@@ -154,6 +173,14 @@ def mainloop(country, max_bar, max_population, pop_data):
                     year = _Start_year
                     clear_device()
                     delay(500)  # 1/2 second blank
+                    if Recording:
+                        Recording = False
+                        save_recording(country + ".png")
+                        end_recording()
+                    if RecordMode:
+                        Recording = True
+                        RecordMode = False
+                        begin_recording()
     print ("EXIT")
 
 def read_data(country, year):
