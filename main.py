@@ -19,7 +19,7 @@ _Horizontal = 1400
 _Margin = 50
 _ActiveColumns = 21
 _Columns = 28
-_Column_width = (_Horizontal - (2* _Margin)) / (_Columns + 2)
+_Column_width = (_Horizontal - (2* _Margin)) / (_Columns + 1)
 
 _pink_hue = 320
 _pink_saturation = 35/100
@@ -141,22 +141,27 @@ def mainloop(country, max_bar, max_population, pop_data):
                     draw_text(startx + 3, _Vertical / 2 - _Margin / 2, (year - 5 * group))
                 startx = startx + width
 
+            # Last columns are only previous deaths
             group = _ActiveColumns
             while group < _Columns:
                 # Label groups
                 draw_text(_Margin + 3 + group * _Column_width, starty + _Margin / 2, str(group * 5))
+                if group == _Columns - 1:
+                    width = _Column_width * (Speed - sub) / Speed
+                else:
+                    width = _Column_width
                 if group < len(pop_data[idx_yr]["previous_death"]):
                     last_death = pop_data[idx_yr]["previous_death"][group]
-                    draw_rect(startx, starty, startx + _Column_width, starty + scale * last_death)
+                    draw_rect(startx, starty, startx + width, starty + scale * last_death)
                 if (year - group * 5) % 20 == 0:
                     draw_text(startx + 3, _Vertical / 2 - _Margin / 2, (year - 5 * group))
                 startx = startx + _Column_width
                 group += 1
 
-            startx = _Horizontal - _Margin - _Column_width # Skip one column before death
+            startx = _Horizontal - _Margin - _Column_width / 2 # Skip one column before death
             draw_text(startx, _Vertical - _Margin / 2, "death")
             set_bar_color(1, 1, 0.4, ColorMode, _purple_color)
-            draw_rect(startx, starty + scale * total_death, startx + _Column_width, starty)
+            draw_rect(startx, starty + scale * total_death, startx + _Column_width/2, starty)
 
             draw_text(startx, _Margin / 2, "birth")
             h = get_font_size()
@@ -165,10 +170,10 @@ def mainloop(country, max_bar, max_population, pop_data):
             pop_f = pop_data[idx_yr]["live"][0][1]
 
             set_bar_color(1, 1, 0.7, ColorMode, _green_color)
-            draw_rect(startx, starty - scale * (pop_m + pop_f), startx + _Column_width, starty)
+            draw_rect(startx, starty - scale * (pop_m + pop_f), startx + _Column_width/2, starty)
 
             set_bar_color(1, 1, 0.8, ColorMode, _blue_color)
-            draw_rect(startx, starty - scale * (pop_m + pop_f + total_immigration), startx + _Column_width, starty - scale * (pop_m + pop_f))
+            draw_rect(startx, starty - scale * (pop_m + pop_f + total_immigration), startx + _Column_width/2, starty - scale * (pop_m + pop_f))
 
             startx = _Margin
             starty = _Vertical / 2
