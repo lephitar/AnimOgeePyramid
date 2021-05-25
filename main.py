@@ -94,14 +94,6 @@ def mainloop(country, max_bar, max_population, pop_data):
 
         if delay_jfps(_FPS):
             clear_device()
-            if Recording and blink < _FPS / 2:
-                set_fill_color(color_rgb(255, 0, 0))
-                set_color(color_rgb(255, 0, 0))
-                draw_circle(_Horizontal - _Margin / 2, _Margin / 2, 5)
-            set_color(color_rgb(80, 80, 80, 255))
-            blink = blink + 1
-            if blink >= _FPS:
-                blink = 0
 
             startx = _Margin
             starty = _Vertical / 2
@@ -197,10 +189,21 @@ def mainloop(country, max_bar, max_population, pop_data):
 
                         save_recording(pth+"/"+country + ".png")
                         end_recording()
+
+                    # Animate red circle
                     if RecordMode:
                         Recording = True
                         RecordMode = False
                         begin_recording()
+            if Recording and blink < _FPS / 2:
+                set_fill_color(color_rgb(255, 0, 0))
+                set_color(color_rgb(255, 0, 0))
+                draw_circle(_Horizontal - _Margin / 2, _Margin / 2, 5)
+            set_color(color_rgb(80, 80, 80, 255))
+            blink = blink + 1
+            if blink >= _FPS:
+                blink = 0
+
     print ("EXIT")
 
 def read_data(country, year):
