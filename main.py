@@ -104,7 +104,6 @@ def mainloop(country, max_bar, max_population, pop_data):
             for group in range(0,_ActiveColumns):
                 pop_m = pop_data[idx_yr]["live"][group][0]
                 pop_f = pop_data[idx_yr]["live"][group][1]
-                set_bar_color(pop_m, pop_f,0.7, ColorMode, _green_color)
 
                 # First column fill in from left to righ
                 if group == 0:
@@ -121,6 +120,7 @@ def mainloop(country, max_bar, max_population, pop_data):
                 total_immigration += int(pop_data[idx_yr]["immigration"][group])
 
                 # Draw live
+                set_bar_color(pop_m, pop_f,0.7, ColorMode, _green_color)
                 draw_rect(startx, starty - scale * (pop_m + pop_f - death), startx + width, starty)
 
                 # Draw immigration
@@ -158,9 +158,16 @@ def mainloop(country, max_bar, max_population, pop_data):
             set_bar_color(1, 1, 0.4, ColorMode, _purple_color)
             draw_rect(startx, starty + scale * total_death, startx + _Column_width, starty)
 
-            draw_text(startx, _Margin / 2, "immig")
+            draw_text(startx, _Margin / 2, "birth")
+            draw_text(startx, _Margin / 2 + 15, "immig")
+            pop_m = pop_data[idx_yr]["live"][0][0]
+            pop_f = pop_data[idx_yr]["live"][0][1]
+
+            set_bar_color(1, 1, 0.7, ColorMode, _green_color)
+            draw_rect(startx, starty - scale * (pop_m + pop_f), startx + _Column_width, starty)
+
             set_bar_color(1, 1, 0.8, ColorMode, _blue_color)
-            draw_rect(startx, starty - scale * total_immigration, startx + _Column_width, starty)
+            draw_rect(startx, starty - scale * (pop_m + pop_f + total_immigration), startx + _Column_width, starty - scale * (pop_m + pop_f))
 
             startx = _Margin
             starty = _Vertical / 2
