@@ -159,7 +159,8 @@ def mainloop(country, max_bar, max_population, pop_data):
             draw_rect(startx, starty + scale * total_death, startx + _Column_width, starty)
 
             draw_text(startx, _Margin / 2, "birth")
-            draw_text(startx, _Margin / 2 + 15, "immig")
+            h = get_font_size()
+            draw_text(startx, _Margin / 2 + h, "immig")
             pop_m = pop_data[idx_yr]["live"][0][0]
             pop_f = pop_data[idx_yr]["live"][0][1]
 
