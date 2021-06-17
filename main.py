@@ -5,6 +5,7 @@ import os
 import requests
 import country_codes
 from PyQt5.QtGui import QFont
+import json
 
 # Country codes are ISO 3166-1
 # All referred to in slim-country.csv
@@ -248,7 +249,7 @@ def read_data(country, year):
             pop.append([int(row[1]),int(row[2])])
     return pop
 
-def cache_country(country):
+def cache_country(country, country_code):
     pth = "data/" + country
     try:
         os.mkdir(pth)
@@ -266,7 +267,7 @@ def cache_country(country):
                 draw_rect(_Margin, _Margin, _Margin + 4 * (2100 - 1950), _Margin + 20)
                 set_bar_color(2 + (2100 - year) / 150, 2 + (year - 1950) / 150, 0.8, "color", "#3399ff")
                 draw_rect(_Margin, _Margin, _Margin + 4 * (year - 1950), _Margin + 20)
-                url = 'https://www.populationpyramid.net/api/pp/' + str(country_codes.countries[country]) + '/' + str(
+                url = 'https://www.populationpyramid.net/api/pp/' + country_code + '/' + str(
                     year) + '/?csv=true'  # [1950-2100:5]
                 r = requests.get(url)
                 file = open("data/" + country + "/pop" + str(year) + ".csv", "w")
@@ -308,14 +309,22 @@ def main():
     font.setBold(True)
     set_font(font)
     set_font_size(14)
+    data_generation = False     # ONLY TRUE WHEN GENERATING JSON DATA
     while True:
         # Select country
-        country = get_choice("What country", choices=country_codes.countries.keys())
+        if data_generation:
+            full_country = country_codes.countries.popitem()
+            country = full_country[0]
+            country_code = full_country[1]
+            print(f"country {country} {country_code}")
+        else:
+            country = get_choice("What country", choices=country_codes.countries.keys())
+
         if country == None:
             break
         # Cache country data if not there
         if country not in cached:
-            if cache_country(country):
+            if cache_country(country,country_code):
                 cached.append(country)
 
         # Precalculate data
@@ -379,6 +388,11 @@ def main():
             pop_data.append({"year":year, "population":population, "live":live_bars, "death":death_bars, "immigration":immig_bars, "previous_death":pre_deaths, "previous_immig":pre_immig})
             live_bars = next_bars
 
-        mainloop(country, max_bar, max_population, pop_data)
+        if data_generation:
+            my_data = {"country":country, "country_code":country_code, "max_bar":max_bar, "max_population":max_population, "pop_data":pop_data}
+            with open('data/'+country_code+'.json', 'w') as outfile:
+                json.dump(my_data, outfile)
+        else:
+            mainloop(country, max_bar, max_population, pop_data)
     close_graph()
 easy_run(main)
