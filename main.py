@@ -10,6 +10,7 @@ import json
 # Country codes are ISO 3166-1
 # All referred to in slim-country.csv
 
+_Data_generation = True  # ONLY TRUE WHEN GENERATING JSON DATA
 
 # get data curl "https://www.populationpyramid.net/api/pp/392/[1950-2100:5]/?csv=true" -o pop#1.csv
 _Start_year = 1950
@@ -309,14 +310,16 @@ def main():
     font.setBold(True)
     set_font(font)
     set_font_size(14)
-    data_generation = False     # ONLY TRUE WHEN GENERATING JSON DATA
     while True:
         # Select country
-        if data_generation:
-            full_country = country_codes.countries.popitem()
-            country = full_country[0]
-            country_code = full_country[1]
-            print(f"country {country} {country_code}")
+        if _Data_generation:
+            try:
+                full_country = country_codes.countries.popitem()
+                country = full_country[0]
+                country_code = full_country[1]
+                print(f"country {country} {country_code}")
+            except KeyError:
+                break
         else:
             country = get_choice("What country", choices=country_codes.countries.keys())
 
@@ -388,7 +391,7 @@ def main():
             pop_data.append({"year":year, "population":population, "live":live_bars, "death":death_bars, "immigration":immig_bars, "previous_death":pre_deaths, "previous_immig":pre_immig})
             live_bars = next_bars
 
-        if data_generation:
+        if _Data_generation:
             my_data = {"country":country, "country_code":country_code, "max_bar":max_bar, "max_population":max_population, "pop_data":pop_data}
             with open('data/'+country_code+'.json', 'w') as outfile:
                 json.dump(my_data, outfile)
