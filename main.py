@@ -10,7 +10,7 @@ import json
 # Country codes are ISO 3166-1
 # All referred to in slim-country.csv
 
-_Data_generation = True  # ONLY TRUE WHEN GENERATING JSON DATA
+_Data_generation = False  # ONLY TRUE WHEN GENERATING JSON DATA
 
 # get data curl "https://www.populationpyramid.net/api/pp/392/[1950-2100:5]/?csv=true" -o pop#1.csv
 _Start_year = 1950
@@ -322,6 +322,7 @@ def main():
                 break
         else:
             country = get_choice("What country", choices=country_codes.countries.keys())
+            country_code = str(country_codes.countries[country])
 
         if country == None:
             break
