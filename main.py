@@ -322,10 +322,10 @@ def main():
                 break
         else:
             country = get_choice("What country", choices=country_codes.countries.keys())
+            if country == None:
+                break
             country_code = str(country_codes.countries[country])
 
-        if country == None:
-            break
         # Cache country data if not there
         if country not in cached:
             if cache_country(country,country_code):
