@@ -10,7 +10,7 @@ import json
 # Country codes are ISO 3166-1
 # All referred to in slim-country.csv
 
-_Data_generation = False  # ONLY TRUE WHEN GENERATING JSON DATA
+_Data_generation = True  # ONLY TRUE WHEN GENERATING JSON DATA
 
 # get data curl "https://www.populationpyramid.net/api/pp/392/[1950-2100:5]/?csv=true" -o pop#1.csv
 _Start_year = 1950
@@ -34,7 +34,7 @@ _blue_color = "#3399FF"
 _purple_color = "#663399"
 _green_color = "#55D43F"
 _SubFrames = 4
-_FPS = 10
+_FPS = 30
 
 
 def set_bar_color(m, f, dark, mode, color):
@@ -77,22 +77,25 @@ def mainloop(country, max_bar, max_population, pop_data):
             if mykey == "y":
                 pause()
             if mykey == "<":
-                if Speed > 2:
-                    Speed = Speed - 1
+                if Speed > 1:
+                    Speed = Speed / 1.2
+                else:
+                    Speed = 1
             if mykey == ">":
-                Speed = Speed + 1
+                Speed = Speed * 1.2
             if mykey == "s":
                 ColorMode = "sex"
             if mykey == "c":
                 ColorMode = "color"
             if mykey == "r":
                 RecordMode = True
+            if mykey == "q":
+                return
 
 
         if has_mouse_msg():
-            while has_mouse_msg():
-                get_mouse_msg()
-            return
+            msg = get_mouse_msg()
+            print(f"mouse : {msg}")
 
         if delay_jfps(_FPS):
             clear_device()
@@ -190,7 +193,7 @@ def mainloop(country, max_bar, max_population, pop_data):
 
             startx = _Margin
             starty = _Vertical / 2
-            draw_text(_Margin, _Margin/2, country," : ",year, " population ",int(pop_data[idx_yr]["population"]/10000)/100, "M % of max : ", int(1000*pop_data[idx_yr]["population"]/max_population)/10)
+            draw_text(_Margin, _Margin/2, country," : ",year, " population ",int(pop_data[idx_yr]["population"]/10000)/100, "M % of max : ", int(1000*pop_data[idx_yr]["population"]/max_population)/10," sp:", Speed)
 
             group = 0
             while group < _Columns:
@@ -310,6 +313,7 @@ def main():
     font.setBold(True)
     set_font(font)
     set_font_size(14)
+    # QtGUI.setMouseTracking(True)
     while True:
         # Select country
         if _Data_generation:
