@@ -53,18 +53,23 @@ def year_compare(a, b):
         total = total + a[idx][0] + a[idx][1]
         delta = abs(a[idx][0] - b[idx][0]) + abs(a[idx][1] - b[idx][1])
         diff = diff + delta
-        if delta > 0:
-            print(f"delta @{idx * 5 + _Start_year}:{delta}")
     return total,diff
 
 def main():
-    summed_country_name = "EASTERN ASIA"
+    summed_country_name = "SOUTH EASTERN ASIA"
     summed_country_code = country_codes.countries[summed_country_name]
-    print(f"Calculating {summed_country_name} code {find_countryname(summed_country_code)}")
 
     with open('CountryRegions.json','r') as infile:
         hierar = json.load(infile)
     summed_directory = find_directory_by_type(hierar,summed_country_name,'name')
+
+    parts = ""
+    for part in summed_directory['sub']:
+        if parts == "":
+            parts = part['name']
+        else:
+            parts = parts + " + " + part['name']
+    print(f"Calculating {find_countryname(summed_country_code)} = {parts}")
 
     ov_total = 0
     ov_diff = 0
@@ -76,10 +81,10 @@ def main():
             summed_parts = year_add(summed_parts,part_data)
         th_total,th_diff = year_compare(summed_data, summed_parts)
  #       print(f"Comparing to {summed_directory['name']} {year} {100*th_diff/th_total}% = {th_diff}/{th_total}")
-        print(f"Comparing to {summed_directory['name']} {year} {th_diff}/{th_total}")
         ov_total = ov_total + th_total
         ov_diff = ov_diff + th_diff
-    print(f"Comparing to {summed_directory['name']} {100 * ov_diff / ov_total}% = {ov_diff}/{ov_total}")
+    rel_dif = round(1000 * ov_diff / ov_total) / 100
+    print(f"Comparing to {summed_directory['name']} {ov_diff / ov_total}% = {ov_diff}/{ov_total}")
 
 
 main()
