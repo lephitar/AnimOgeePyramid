@@ -107,8 +107,8 @@ def mainloop(country, max_bar, max_population, pop_data):
             total_immigration = 0
 
             for group in range(0,_ActiveColumns):
-                pop_m = pop_data[idx_yr]["live"][group][0]
-                pop_f = pop_data[idx_yr]["live"][group][1]
+                pop_m = pop_data[idx_yr]["li"][group][0]
+                pop_f = pop_data[idx_yr]["li"][group][1]
 
                 # First column fill in from left to righ
                 if group == 0:
@@ -118,11 +118,11 @@ def mainloop(country, max_bar, max_population, pop_data):
 
                 # First column fill in progressively
 
-                death = int(pop_data[idx_yr]["death"][group] * sub / Speed)
-                total_death += int(pop_data[idx_yr]["death"][group])
+                death = int(pop_data[idx_yr]["de"][group] * sub / Speed)
+                total_death += int(pop_data[idx_yr]["de"][group])
 
-                immigration = int(pop_data[idx_yr]["immigration"][group] * sub / Speed)
-                total_immigration += int(pop_data[idx_yr]["immigration"][group])
+                immigration = int(pop_data[idx_yr]["im"][group] * sub / Speed)
+                total_immigration += int(pop_data[idx_yr]["im"][group])
 
                 # Draw live
                 set_bar_color(pop_m, pop_f,0.7, ColorMode, _green_color)
@@ -134,7 +134,7 @@ def mainloop(country, max_bar, max_population, pop_data):
 
                 # Draw Death
                 set_bar_color(1, 1, 0.4, ColorMode, _purple_color)
-                last_death = pop_data[idx_yr]["previous_death"][group]
+                last_death = pop_data[idx_yr]["pd"][group]
                 draw_rect(startx, starty, startx + width, starty + scale * last_death)
                 draw_rect(startx, starty + scale * last_death, startx + width, starty + scale * (last_death + death))
 
@@ -150,16 +150,16 @@ def mainloop(country, max_bar, max_population, pop_data):
                     width = _Column_width * (Speed - sub) / Speed
                 else:
                     width = _Column_width
-                if group < len(pop_data[idx_yr]["previous_death"]):
-                    last_death = pop_data[idx_yr]["previous_death"][group]
+                if group < len(pop_data[idx_yr]["pd"]):
+                    last_death = pop_data[idx_yr]["pd"][group]
                     draw_rect(startx, starty, startx + width, starty + scale * last_death)
                 if (year - group * 5) % 20 == 0:
                     draw_text(startx + 3, _Vertical / 2 - _Margin / 2, (year - 5 * group))
                 startx = startx + _Column_width
                 group += 1
 
-            pop_m = pop_data[idx_yr]["live"][0][0]
-            pop_f = pop_data[idx_yr]["live"][0][1]
+            pop_m = pop_data[idx_yr]["li"][0][0]
+            pop_f = pop_data[idx_yr]["li"][0][1]
 
             font = QFont("Courier")
             font.setBold(total_death > pop_m + pop_f + total_immigration)
@@ -193,7 +193,7 @@ def mainloop(country, max_bar, max_population, pop_data):
 
             startx = _Margin
             starty = _Vertical / 2
-            draw_text(_Margin, _Margin/2, country," : ",year, " population ",int(pop_data[idx_yr]["population"]/10000)/100, "M % of max : ", int(1000*pop_data[idx_yr]["population"]/max_population)/10," sp:", Speed)
+            draw_text(_Margin, _Margin/2, country," : ",year, " population ",int(pop_data[idx_yr]["pp"]/10000)/100, "M % of max : ", int(1000*pop_data[idx_yr]["pp"]/max_population)/10," sp:", Speed)
 
             group = 0
             while group < _Columns:
@@ -393,7 +393,7 @@ def main():
             if population > max_population:
                 max_population = population
 
-            pop_data.append({"year":year, "population":population, "live":live_bars, "death":death_bars, "immigration":immig_bars, "previous_death":pre_deaths, "previous_immig":pre_immig})
+            pop_data.append({"yr":year, "pp":population, "li":live_bars, "de":death_bars, "im":immig_bars, "pd":pre_deaths, "pi":pre_immig})
             live_bars = next_bars
 
         if _Data_generation:
