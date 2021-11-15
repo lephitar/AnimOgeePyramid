@@ -22,8 +22,8 @@ def year_add(into,what):
         return what
     else:
         for idx, group in enumerate(what):
-            into[idx][0] = into[idx][0] + what[idx][0]
-            into[idx][1] = into[idx][1] + what[idx][1]
+            into[idx][0] = int(into[idx][0]) + int(what[idx][0])
+            into[idx][1] = int(into[idx][1]) + int(what[idx][1])
         return into
 
 def year_compare(a, b):
@@ -106,7 +106,7 @@ def create_summed_region(countries, sum_region):
             if (idx_ln == 0):
                 sumc.append(line)
             else:
-                sumc.append([line[0], ac[idx_ln][1] + bc[idx_ln][1], ac[idx_ln][2] + bc[idx_ln][2]])
+                sumc.append([line[0], int(ac[idx_ln][1]) + int(bc[idx_ln][1]), int(ac[idx_ln][2]) + int(bc[idx_ln][2])])
 
         # Write out csv
         country.write_full_data(sum_region,year,sumc)
@@ -164,13 +164,13 @@ def output_hierarchy():
 
 
 def main():
-#    for reg in country_codes.extended:
-#        if not 'alpha2' in reg:
-#            compare_region_to_countries(reg['m49Name'])
+    for reg in country_codes.extended:
+        if not 'alpha2' in reg:
+            compare_region_to_countries(reg['m49Name'])
 
 #    Create_Americas()
 
-   output_hierarchy()
+#   output_hierarchy()
 
 
 main()

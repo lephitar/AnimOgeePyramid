@@ -11,7 +11,8 @@ import country_codes
 # Country codes are ISO 3166-1
 # All referred to in slim-country.csv
 
-_Data_generation = True  # ONLY TRUE WHEN GENERATING JSON DATA
+_Data_generation = False
+# ONLY TRUE WHEN GENERATING JSON DATA
 
 # get data curl "https://www.populationpyramid.net/api/pp/392/[1950-2100:5]/?csv=true" -o pop#1.csv
 _Start_year = 1950
@@ -350,13 +351,13 @@ def main():
             except KeyError:
                 break
         else:
-            country = get_choice("What country", choices=countryList)
-            if country == None:
+            ct = get_choice("What country", choices=countryList)
+            if ct == None:
                 print(f"Unknown country given by menu selection")
                 break
-            full_country = country.find_one(country,'usual')
+            full_country = country.find_one(ct,'usual')
             if full_country == None:
-                full_country = country.find_one(country, 'm49Name')
+                full_country = country.find_one(ct, 'm49Name')
 
         # Cache country data if not there
 
