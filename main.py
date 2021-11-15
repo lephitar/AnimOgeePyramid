@@ -3,9 +3,10 @@ from easygraphics.dialog import *
 import csv
 import os
 import requests
-import country_codes
 from PyQt5.QtGui import QFont
 import json
+import country
+import country_codes
 
 # Country codes are ISO 3166-1
 # All referred to in slim-country.csv
@@ -59,7 +60,16 @@ def set_bar_color(m, f, dark, mode, color):
         else:
             set_fill_color(color)
 
-def mainloop(country, max_bar, max_population, pop_data):
+def getM49Code(oldCode):
+    for idx in country_codes.extended:
+        if 'oldCode' in idx: # Skip non supported countries
+#           print(f"{idx['m49Name']} {type(idx['oldCode'])} {idx['oldCode']} to {oldCode} {type(oldCode)}")
+            if idx['oldCode'] == int(oldCode):
+#                print(f"Found {idx['m49Code']} idx['m49Name']")
+                return idx['m49Code']
+    return None
+
+def mainloop(country_name, max_bar, max_population, pop_data):
     Speed = _SubFrames  # frame per sec
 
     year = _Start_year
@@ -193,7 +203,7 @@ def mainloop(country, max_bar, max_population, pop_data):
 
             startx = _Margin
             starty = _Vertical / 2
-            draw_text(_Margin, _Margin/2, country," : ",year, " population ",int(pop_data[idx_yr]["pp"]/10000)/100, "M % of max : ", int(1000*pop_data[idx_yr]["pp"]/max_population)/10," sp:", Speed)
+            draw_text(_Margin, _Margin/2, country_name," : ",year, " population ",int(pop_data[idx_yr]["pp"]/10000)/100, "M % of max : ", int(1000*pop_data[idx_yr]["pp"]/max_population)/10," sp:", Speed)
 
             group = 0
             while group < _Columns:
@@ -223,7 +233,7 @@ def mainloop(country, max_bar, max_population, pop_data):
                                 print("Creation of the directory %s failed" % pth)
                                 exit(0)
 
-                        save_recording(pth+"/"+country + ".png")
+                        save_recording(pth+"/"+country_name + ".png")
                         end_recording()
 
                     # Animate red circle
@@ -242,10 +252,10 @@ def mainloop(country, max_bar, max_population, pop_data):
 
     print ("EXIT")
 
-def read_data(country, year):
+def read_data(country_name, year):
     pop = []
     # read data
-    file_name = "data/" + country + "/pop" + str(year) + ".csv"
+    file_name = "data/" + country_name + "/pop" + str(year) + ".csv"
     with open(file_name, newline='') as csvfile:
         datareader = csv.reader(csvfile, delimiter=',', quotechar='|')
         next(datareader)
@@ -253,8 +263,8 @@ def read_data(country, year):
             pop.append([int(row[1]),int(row[2])])
     return pop
 
-def cache_country(country, country_code):
-    pth = "data/" + country
+def cache_country(country_name, country_code):
+    pth = "data/" + country_name
     try:
         os.mkdir(pth)
     except OSError:
@@ -271,10 +281,10 @@ def cache_country(country, country_code):
                 draw_rect(_Margin, _Margin, _Margin + 4 * (2100 - 1950), _Margin + 20)
                 set_bar_color(2 + (2100 - year) / 150, 2 + (year - 1950) / 150, 0.8, "color", "#3399ff")
                 draw_rect(_Margin, _Margin, _Margin + 4 * (year - 1950), _Margin + 20)
-                url = 'https://www.populationpyramid.net/api/pp/' + country_code + '/' + str(
+                url = 'https://www.populationpyramid.net/api/pp/' + str(country_code) + '/' + str(
                     year) + '/?csv=true'  # [1950-2100:5]
                 r = requests.get(url)
-                file = open("data/" + country + "/pop" + str(year) + ".csv", "w")
+                file = open("data/" + country_name + "/pop" + str(year) + ".csv", "w")
                 file.write(r.text)
                 file.close()
                 break   # get out of while True
@@ -314,26 +324,49 @@ def main():
     set_font(font)
     set_font_size(14)
     # QtGUI.setMouseTracking(True)
+
+    # Creat country list, TODO use usual
+    countryList = []
+    for ct in country_codes.extended:
+        if 'oldCode' in ct:
+            if 'usual' in ct:
+                countryList.append(ct['usual'])
+            else:
+                countryList.append(ct['m49Name'])
+    print(f"{len(countryList)} {countryList}")
+
     while True:
         # Select country
         if _Data_generation:
             try:
-                full_country = country_codes.countries.popitem()
-                country = full_country[0]
-                country_code = full_country[1]
-                print(f"country {country} {country_code}")
+                not_found = True
+                while not_found:
+                    if len(country_codes.extended) > 0:
+                        full_country = country_codes.extended.pop()
+                    else:
+                        exit(0)
+                    not_found = not('oldCode' in full_country)
+                print(f"Converting {full_country['m49Name']} {full_country['m49Code']}")
             except KeyError:
                 break
         else:
-            country = get_choice("What country", choices=country_codes.countries.keys())
+            country = get_choice("What country", choices=countryList)
             if country == None:
+                print(f"Unknown country given by menu selection")
                 break
-            country_code = str(country_codes.countries[country])
+            full_country = country.find_one(country,'usual')
+            if full_country == None:
+                full_country = country.find_one(country, 'm49Name')
 
         # Cache country data if not there
-        if country not in cached:
-            if cache_country(country,country_code):
-                cached.append(country)
+
+        if full_country['m49Name'] not in cached:
+            if 'oldCode' in full_country:
+                if cache_country(full_country['m49Name'],full_country['oldCode']):
+                    cached.append(full_country['m49Name'])
+            else:
+                if cache_country(full_country['m49Name'],full_country['m49Code']):
+                    cached.append(full_country['m49Name'])
 
         # Precalculate data
         pop_data = []
@@ -344,10 +377,10 @@ def main():
         previous_immig = []
         immig_bars = []
 
-        live_bars = read_data(country, _Start_year)
+        live_bars = read_data(full_country['m49Name'], _Start_year)
         for idx_yr, year in enumerate(range(_Start_year, _End_year, 5)):
             # Read live data a column ahead
-            next_bars = read_data(country, year+5)
+            next_bars = read_data(full_country['m49Name'], year+5)
 
             # Handle previous deaths
             if idx_yr > 0:
@@ -397,10 +430,14 @@ def main():
             live_bars = next_bars
 
         if _Data_generation:
-            my_data = {"country":country, "country_code":country_code, "max_bar":max_bar, "max_population":max_population, "pop_data":pop_data}
-            with open('data/'+country_code+'.json', 'w') as outfile:
+            my_data = {"country":full_country['m49Name'],
+                       "country_code":full_country['m49Code'],
+                       "max_bar":max_bar,
+                       "max_population":max_population,
+                       "pop_data":pop_data}
+            with open('data/'+str(full_country['m49Code'])+'.json', 'w') as outfile:
                 json.dump(my_data, outfile)
         else:
-            mainloop(country, max_bar, max_population, pop_data)
+            mainloop(full_country['m49Name'], max_bar, max_population, pop_data)
     close_graph()
 easy_run(main)
