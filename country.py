@@ -37,7 +37,6 @@ def write_full_data(country, year, data):
 def find_one(data, type):
     for ct in country_codes.extended:
         if type in ct:
-            foundType = True
             if str(ct[type]) == str(data):
                 return ct
     return None
@@ -45,10 +44,9 @@ def find_one(data, type):
 
 # Return all countries matching
 def find_all(data, type):
-    found = None
+    found = []
     for ct in country_codes.extended:
         if type in ct:
-            foundType = True
             if str(ct[type]) == str(data):
                 found.append(ct)
     return found

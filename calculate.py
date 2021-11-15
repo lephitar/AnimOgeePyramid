@@ -17,19 +17,6 @@ def right(s, amount):
 def mid(s, offset, amount):
     return s[offset:offset+amount]
 
-
-def find_directory_by_type(hierar,to_find,type):
-    if hierar[type] == to_find:
-        return hierar
-    else:
-        if hierar['sub'] == []:
-            return None
-        for sub in hierar['sub']:
-            what = find_directory_by_type(sub,to_find,type)
-            if what != None:
-                return what
-        return None
-
 def year_add(into,what):
     if into == []:
         return what
@@ -48,35 +35,52 @@ def year_compare(a, b):
         diff = diff + delta
     return total,diff
 
-def compare_region_to_countries(region):
-    summed_country_code = country_codes.countries[region]
+def compare_region_to_countries(region_name):
+    region = country.find_one(region_name,'m49Name')
+    if region == None:
+        print(f"Cannot find {region_name}")
+        return
+
+    summed_country_code = region['m49Code']
 
     with open('CountryRegions.json', 'r') as infile:
         hierar = json.load(infile)
-    summed_directory = find_directory_by_type(hierar, summed_country_name, 'name')
+
+    allParts = country.find_all(summed_country_code, 'm49Parent')
+
+    selectParts = []
+    for part in allParts:
+        if 'oldCode' in part:  # only add countries that have an old code
+            selectParts.append(part)
+
+    if selectParts == []:
+        print(f"No subparts to {region_name}")
+        return
 
     parts = ""
-    for part in summed_directory['sub']:
+    for part in selectParts:
         if parts == "":
-            parts = part['name']
+            parts = part['m49Name']
         else:
-            parts = parts + " + " + part['name']
-    print(f"Calculating {find_countryname(summed_country_code)} = {parts}")
+            parts = parts + " + " + part['m49Name']
+    print(f"Calculating {region['m49Name']} = {parts}")
 
     ov_total = 0
     ov_diff = 0
     for idx_yr, year in enumerate(range(_Start_year, _End_year, 5)):
-        summed_data = read_data(summed_country_name, year)
+        # read parent region data for year
+        summed_data = country.read_data(region, year)
         summed_parts = []
-        for part in summed_directory['sub']:
-            part_data = read_data(find_countryname(part['code']), year)
+        # read and add each sub
+        for part in selectParts:
+            part_data = country.read_data(part, year)
             summed_parts = year_add(summed_parts, part_data)
         th_total, th_diff = year_compare(summed_data, summed_parts)
         #       print(f"Comparing to {summed_directory['name']} {year} {100*th_diff/th_total}% = {th_diff}/{th_total}")
         ov_total = ov_total + th_total
         ov_diff = ov_diff + th_diff
     rel_dif = round(1000 * ov_diff / ov_total) / 100
-    print(f"Comparing to {summed_directory['name']} {ov_diff / ov_total}% = {ov_diff}/{ov_total}")
+    print(f"Comparing to {region_name} {ov_diff / ov_total}% = {ov_diff}/{ov_total}")
 
 
 def create_summed_region(countries, sum_region):
@@ -114,6 +118,18 @@ def Create_Americas():
     ]
     create_summed_region(sum_region, country.find_one("Americas",'m49Name'))
 
+def find_directory_by_type(hierar,to_find,type):
+    if hierar[type] == to_find:
+        return hierar
+    else:
+        if hierar['sub'] == []:
+            return None
+        for sub in hierar['sub']:
+            what = find_directory_by_type(sub,to_find,type)
+            if what != None:
+                return what
+        return None
+
 # name	M49	parent	alpha-2	full
 def fill_hier(elem):
     myDict = {}
@@ -135,7 +151,7 @@ def fill_hier(elem):
     return myDict
 
 def output_hierarchy():
-    name = "test"
+    name = "CountryRegions"
     root = country.find_one(1,'m49Code')
     if root == None:
         exit(0)
@@ -148,12 +164,13 @@ def output_hierarchy():
 
 
 def main():
-#    summed_country_name = "SOUTH EASTERN ASIA"
-#    sum_region(summed_country_name)
+#    for reg in country_codes.extended:
+#        if not 'alpha2' in reg:
+#            compare_region_to_countries(reg['m49Name'])
 
-    Create_Americas()
+#    Create_Americas()
 
-#   output_hierarchy()
+   output_hierarchy()
 
 
 main()
